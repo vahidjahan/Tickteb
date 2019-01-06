@@ -41,6 +41,7 @@ import { requestPermission } from '../prolar/PermissionCheck'
 import DropDown from '../public/dropDown/DropDown'
 import { ReletivePostApi, ReletiveDeleteApi } from './RelativeApi'
 import RNFetchBlob from 'rn-fetch-blob'
+import { GetReletiveApi } from './RelativeApi'
 
 import {
   validateEmail,
@@ -66,7 +67,7 @@ let relData = {
   height: '',
   nationalCode: '',
   birthDate: '',
-  gender: '',
+  gender: false,
   bloodType: '',
   insurance: '',
   supplementaryInsurance: '',
@@ -95,12 +96,21 @@ export default class ReletiveEdit extends React.Component {
   }
   getValues = async () => {
     let relll
-    relll = this.props.navigation.state.params.item
-    for (var key in relll) {
-      if (relll[key] != null && relll[key] != 'undefined') {
-        relData[key] = relll[key]
+    rellld = this.props.navigation.state.params.item
+    ress= await GetReletiveApi(rellld.id)
+    if(ress.message==200){
+      relll=ress.data
+      relll = { ...relll, pid: rellld.id, fullName: rellld.fullName }
+      for (var key in relll) {
+        if (relll[key] != null && relll[key] != 'undefined') {
+          relData[key] = relll[key]
+        }
       }
+    }else{
+      this.setState({message:['اطلاعات بستگان دریافت نشد']})
+      this.riseError()
     }
+   
     optionss = await GetSelectValue()
     this.setState({ loadedValues: true })
   }
@@ -234,7 +244,7 @@ export default class ReletiveEdit extends React.Component {
     }
     if (!gn) {
       this.setState(prevState => ({
-        message: [...prevState.message, 'چنسیت الزامی است ']
+        message: [...prevState.message, 'جنسیت الزامی است ']
       }))
     }
     if (fn && ln && nc && em && fl && we && he && bd && gn) {
@@ -362,6 +372,7 @@ export default class ReletiveEdit extends React.Component {
   )
 
   render () {
+
     let space = Prolar.size.unit * 10
     let height = 50
     let rowStyle = { width: '100%', paddingTop: space, alignItems: 'flex-end' }
@@ -390,174 +401,175 @@ export default class ReletiveEdit extends React.Component {
           <Right />
         </Header>
 
-        <CustomScrollView>
-          <View
-            justifyContent='center'
-            alignItems='center'
-            style={{ paddingLeft: space * 1.5, paddingRight: space * 1.5 }}
-          >
-            <Thumbnail source={urii} style={styles.pic} />
-
-            {/* -------------------------------------------------------------- */}
-
-            <CameraRollPickerModal
-              style={{ flexDirection: 'row', alignItems: 'center' }}
-              selectPhoto={this.getPhoto}
+        {this.state.loadedValues ? (
+          <CustomScrollView>
+            <View
+              justifyContent='center'
+              alignItems='center'
+              style={{ paddingLeft: space * 1.5, paddingRight: space * 1.5 }}
             >
-              <Text
-                label='آپلود عکس'
-                color={Prolar.color.gray6}
-                fontSize={Prolar.size.font_md}
-                style={{ marginRight: 5 * Prolar.size.unit }}
-              />
-              <CustomImage
-                width={25}
-                height={25}
-                src={require('./../../assets/icons/camera.png')}
-              />
-            </CameraRollPickerModal>
+              <Thumbnail source={urii} style={styles.pic} />
 
-            {/* -------------------------------------------------------------- */}
+              {/* -------------------------------------------------------------- */}
 
-            <View style={{ ...Prolar.style.rtlRow, paddingTop: space * 2 }}>
+              <CameraRollPickerModal
+                style={{ flexDirection: 'row', alignItems: 'center' }}
+                selectPhoto={this.getPhoto}
+              >
+                <Text
+                  label='آپلود عکس'
+                  color={Prolar.color.gray6}
+                  fontSize={Prolar.size.font_md}
+                  style={{ marginRight: 5 * Prolar.size.unit }}
+                />
+                <CustomImage
+                  width={25}
+                  height={25}
+                  src={require('./../../assets/icons/camera.png')}
+                />
+              </CameraRollPickerModal>
+
+              {/* -------------------------------------------------------------- */}
+
+              <View style={{ ...Prolar.style.rtlRow, paddingTop: space * 2 }}>
+                <PrimaryInput
+                  required
+                  label='نام'
+                  getValue={x => (relData.firstName = x)}
+                  defaultValue={relData.firstName}
+                  height={height}
+                  viewStyle={{ width: '50%', paddingLeft: space }}
+                />
+
+                <PrimaryInput
+                  required
+                  label='نام‌خانوادگی'
+                  placeholder='نام‌خانوادگی'
+                  height={height}
+                  defaultValue={relData.lastName}
+                  getValue={x => (relData.lastName = x)}
+                  viewStyle={{ width: '50%', paddingRight: space }}
+                />
+              </View>
+
+              {/* -------------------------------------------------------------- */}
+
               <PrimaryInput
+                keyboardType='numeric'
                 required
-                label='نام'
-                getValue={x => (relData.firstName = x)}
-                defaultValue={relData.firstName}
+                label='کد ملی'
+                placeholder='کد ملی'
                 height={height}
-                viewStyle={{ width: '50%', paddingLeft: space }}
+                defaultValue={relData.nationalCode}
+                getValue={x => (relData.nationalCode = x)}
+                viewStyle={{ width: '100%', paddingTop: space }}
               />
 
-              <PrimaryInput
-                required
-                label='نام‌خانوادگی'
-                placeholder='نام‌خانوادگی'
-                height={height}
-                defaultValue={relData.lastName}
-                getValue={x => (relData.lastName = x)}
-                viewStyle={{ width: '50%', paddingRight: space }}
-              />
-            </View>
+              {/* -------------------------------------------------------------- */}
 
-            {/* -------------------------------------------------------------- */}
-
-            <PrimaryInput
-              keyboardType='numeric'
-              required
-              label='کد ملی'
-              placeholder='کد ملی'
-              height={height}
-              defaultValue={relData.nationalCode}
-              getValue={x => (relData.nationalCode = x)}
-              viewStyle={{ width: '100%', paddingTop: space }}
-            />
-
-            {/* -------------------------------------------------------------- */}
-
-            <View style={{ ...Prolar.style.rtlRow, paddingTop: space * 1.5 }}>
-              <PrimaryText
-                label='تاریخ تولد'
-                style={{
-                  fontFamily: Prolar.fontFamily,
-                  fontSize: Prolar.size.font_sm,
-                  color: Prolar.color.gray8
-                }}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={{
-                height: 50 * Prolar.size.unit,
-                backgroundColor: Prolar.color.gray2,
-                width: '100%',
-                alignItems: 'flex-end',
-                justifyContent: 'center',
-                borderRadius: Prolar.size.radius * Prolar.size.unit
-              }}
-              onPress={() => this.dateRefFunc.current._toggleModal()}
-            >
-              <DateField
-                minDate={Prolar.dateTools.getGregorianToJalaliString(
-                  moment(
-                    new Date(Date.now() - 90 * 365 * 24 * 3600 * 1000)
-                  ).format('YYYY/MM/DD'),
-                  ''
-                )}
-                maxDate={Prolar.dateTools.getGregorianToJalaliString(
-                  moment(
-                    new Date(Date.now() - 18 * 365 * 24 * 3600 * 1000)
-                  ).format('YYYY/MM/DD'),
-                  ''
-                )}
-                defaultDate={
-                  relData.hasOwnProperty('birthDate')
-                    ? relData.birthDate
-                    : Prolar.dateTools.getGregorianToJalaliString(
-                      moment(
-                        new Date(Date.now() - 40 * 365 * 24 * 3600 * 1000)
-                      ).format('YYYY/MM/DD'),
-                      ''
-                    )
-                }
-                viewStyle={{ marginRight: 10 * Prolar.size.unit }}
-                textFieldStyle={[
-                  Prolar.style.textStyle,
-                  {
-                    fontSize: Prolar.size.font_md,
-                    color: Prolar.color.gray11,
+              <View style={{ ...Prolar.style.rtlRow, paddingTop: space * 1.5 }}>
+                <PrimaryText
+                  label='تاریخ تولد'
+                  style={{
                     fontFamily: Prolar.fontFamily,
-                    fontSize: Prolar.size.icon_md
-                  }
-                ]}
-                width={Prolar.size.unit * 350}
-                height={Prolar.size.unit * 280}
-                ref={this.dateRefFunc}
-                format={'ymd'}
-                getValue={data => {
-                  relData.birthDate = data
+                    fontSize: Prolar.size.font_sm,
+                    color: Prolar.color.gray8
+                  }}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  height: 50 * Prolar.size.unit,
+                  backgroundColor: Prolar.color.gray2,
+                  width: '100%',
+                  alignItems: 'flex-end',
+                  justifyContent: 'center',
+                  borderRadius: Prolar.size.radius * Prolar.size.unit
                 }}
+                onPress={() => this.dateRefFunc.current._toggleModal()}
+              >
+                <DateField
+                  minDate={Prolar.dateTools.getGregorianToJalaliString(
+                    moment(
+                      new Date(Date.now() - 90 * 365 * 24 * 3600 * 1000)
+                    ).format('YYYY/MM/DD'),
+                    ''
+                  )}
+                  maxDate={Prolar.dateTools.getGregorianToJalaliString(
+                    moment(
+                      new Date(Date.now() - 18 * 365 * 24 * 3600 * 1000)
+                    ).format('YYYY/MM/DD'),
+                    ''
+                  )}
+                  defaultDate={
+                    relData.hasOwnProperty('birthDate')
+                      ? relData.birthDate
+                      : Prolar.dateTools.getGregorianToJalaliString(
+                        moment(
+                          new Date(Date.now() - 40 * 365 * 24 * 3600 * 1000)
+                        ).format('YYYY/MM/DD'),
+                        ''
+                      )
+                  }
+                  viewStyle={{ marginRight: 10 * Prolar.size.unit }}
+                  textFieldStyle={[
+                    Prolar.style.textStyle,
+                    {
+                      fontSize: Prolar.size.font_md,
+                      color: Prolar.color.gray11,
+                      fontFamily: Prolar.fontFamily,
+                      fontSize: Prolar.size.icon_md
+                    }
+                  ]}
+                  width={Prolar.size.unit * 350}
+                  height={Prolar.size.unit * 280}
+                  ref={this.dateRefFunc}
+                  format={'ymd'}
+                  getValue={data => {
+                    relData.birthDate = data
+                  }}
+                />
+              </TouchableOpacity>
+
+              {/* -------------------------------------------------------------- */}
+
+              <View style={rowStyle}>
+                <Gender
+                  defaultValue={
+                    relData.hasOwnProperty('gender') ? relData.gender : false
+                  }
+                  setGender={x => (relData.gender = x)}
+                  space={space * 2}
+                  viewStyle={{ height: 50 * Prolar.size.unit }}
+                />
+              </View>
+
+              {/* -------------------------------------------------------------- */}
+
+              <PrimaryInput
+                label='ایمیل'
+                placeholder='ایمیل'
+                height={height}
+                defaultValue={relData.email}
+                getValue={x => (relData.email = x)}
+                viewStyle={rowStyle}
               />
-            </TouchableOpacity>
-
-            {/* -------------------------------------------------------------- */}
-
-            <View style={rowStyle}>
-              <Gender
-                defaultValue={
-                  relData.hasOwnProperty('gender') ? relData.gender : false
-                }
-                setGender={x => (relData.gender = x)}
-                space={space * 2}
-                viewStyle={{ height: 50 * Prolar.size.unit }}
+              {/* -------------------------------------------------------------- */}
+              <PrimaryInput
+                keyboardType='numeric'
+                label='تلفن ثابت'
+                placeholder='تلفن ثابت'
+                height={height}
+                style={{ width: '100%' }}
+                defaultValue={relData.fixedLine}
+                getValue={x => (relData.fixedLine = x)}
+                viewStyle={rowStyle}
               />
-            </View>
 
-            {/* -------------------------------------------------------------- */}
+              {/* -------------------------------------------------------------- */}
 
-            <PrimaryInput
-              label='ایمیل'
-              placeholder='ایمیل'
-              height={height}
-              defaultValue={relData.email}
-              getValue={x => (relData.email = x)}
-              viewStyle={rowStyle}
-            />
-            {/* -------------------------------------------------------------- */}
-            <PrimaryInput
-              keyboardType='numeric'
-              label='تلفن ثابت'
-              placeholder='تلفن ثابت'
-              height={height}
-              style={{ width: '100%' }}
-              defaultValue={relData.fixedLine}
-              getValue={x => (relData.fixedLine = x)}
-              viewStyle={rowStyle}
-            />
-
-            {/* -------------------------------------------------------------- */}
-
-            {/* <PrimaryInput
+              {/* <PrimaryInput
               label='آدرس'
               placeholder='آدرس'
               height={height}
@@ -566,182 +578,195 @@ export default class ReletiveEdit extends React.Component {
               viewStyle={rowStyle}
             /> */}
 
-            {/* -------------------------------------------------------------- */}
-            {relData.educationalDegree.length > 0 ? (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='تحصیلات'
-                placeholder='تحصیلات'
-                selected={optionss.educationalDegrees.findIndex(
-                  x => (x.label = relData.educationalDegree)
-                )}
-                list={optionss.educationalDegrees}
-                onSelect={item => {
-                  relData.educationalDegree = item.label
-                }}
-              />
-            ) : (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='تحصیلات'
-                placeholder='تحصیلات'
-                list={optionss.educationalDegrees}
-                onSelect={item => {
-                  relData.educationalDegree = item.label
-                }}
-              />
-            )}
-            {/* -------------------------------------------------------------- */}
-            {relData.bloodType.length > 0 ? (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='گروه خونی'
-                selected={optionss.bloodTypes.findIndex(
-                  x => (x.label = relData.bloodType)
-                )}
-                placeholder='گروه خونی'
-                list={optionss.bloodTypes}
-                onSelect={item => (relData.bloodType = item.label)}
-              />
-            ) : (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='گروه خونی'
-                placeholder='گروه خونی'
-                list={optionss.bloodTypes}
-                onSelect={item => (relData.bloodType = item.label)}
-              />
-            )}
-
-            {/* -------------------------------------------------------------- */}
-
-            <View style={{ ...Prolar.style.rtlRow, paddingTop: space }}>
-              <PrimaryInput
-                keyboardType='numeric'
-                label='قد(سانتیمتر)'
-                placeholder='قد(سانتیمتر)'
-                height={height}
-                defaultValue={relData.height}
-                getValue={x => (relData.height = x)}
-                viewStyle={{ width: '50%', paddingLeft: space }}
-              />
-
-              <PrimaryInput
-                keyboardType='numeric'
-                label='وزن(کیلوگرم)'
-                placeholder='وزن(کیلوگرم)'
-                height={height}
-                defaultValue={relData.weight}
-                getValue={x => (relData.weight = x)}
-                viewStyle={{ width: '50%', paddingRight: space }}
-              />
-            </View>
-
-            {/* -------------------------------------------------------------- */}
-            {relData.insurance.length > 0 ? (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='بیمه'
-                placeholder='بیمه'
-                selected={optionss.insurances.findIndex(
-                  x => (x.label = relData.insurance)
-                )}
-                list={optionss.insurances}
-                onSelect={item => (relData.insurance = item.label)}
-              />
-            ) : (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='بیمه'
-                placeholder='بیمه'
-                list={optionss.insurances}
-                onSelect={item => (relData.insurance = item.label)}
-              />
-            )}
-            {/* -------------------------------------------------------------- */}
-            {relData.supplementaryInsurance.length > 0 ? (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='بیمه تکمیلی'
-                placeholder='بیمه تکمیلی'
-                selected={optionss.supplementaryInsurances.findIndex(
-                  x => (x.label = relData.supplementaryInsurance)
-                )}
-                list={optionss.supplementaryInsurances}
-                onSelect={item => (relData.supplementaryInsurance = item.label)}
-              />
-            ) : (
-              <CustomPicker
-                viewStyle={rowStyle}
-                label='بیمه تکمیلی'
-                placeholder='بیمه تکمیلی'
-                list={optionss.supplementaryInsurances}
-                onSelect={item => (relData.supplementaryInsurance = item.label)}
-              />
-            )}
-            {/* -------------------------------------------------------------- */}
-
-            <View
-              style={{
-                ...Prolar.style.rtlRow,
-                paddingTop: space,
-                justifyContent: 'center',
-                margin: space
-              }}
-            >
-              {this.state.indicatorShow ? (
-                <ActivityIndicator size='large' color={Prolar.color.primary} />
-              ) : (
-                <Button
-                  style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    alignContent: 'center',
-                    alignSelf: 'center',
-                    marginLeft: 10,
-                    marginRight: 10
+              {/* -------------------------------------------------------------- */}
+              {relData.educationalDegree.length > 0 ? (
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='تحصیلات'
+                  placeholder='تحصیلات'
+                  selected={optionss.educationalDegrees.findIndex(
+                    x => (x.label = relData.educationalDegree)
+                  )}
+                  list={optionss.educationalDegrees}
+                  onSelect={item => {
+                    relData.educationalDegree = item.label
                   }}
-                  color={Prolar.color.primary}
-                  width={125}
-                  height={height}
-                  onPress={this.onPress}
-                >
-                  <Text
-                    label='ذخیره اطلاعات'
-                    color={Prolar.color.white}
-                    fontSize={Prolar.size.font_md}
-                  />
-                </Button>
-              )}
-              {this.state.indicatorShow2 ? (
-                <ActivityIndicator size='large' color={Prolar.color.primary} />
+                />
               ) : (
-                <Button
-                  style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    alignContent: 'center',
-                    alignSelf: 'center',
-                    marginLeft: 10,
-                    marginRight: 10
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='تحصیلات'
+                  placeholder='تحصیلات'
+                  list={optionss.educationalDegrees}
+                  onSelect={item => {
+                    relData.educationalDegree = item.label
                   }}
-                  color={Prolar.color.cardDelete}
-                  width={125}
-                  height={height}
-                  onPress={this.onDel}
-                >
-                  <Text
-                    label='حذف'
-                    color={Prolar.color.white}
-                    fontSize={Prolar.size.font_md}
-                  />
-                </Button>
+                />
               )}
-            </View>
+              {/* -------------------------------------------------------------- */}
+              {relData.bloodType.length > 0 ? (
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='گروه خونی'
+                  selected={optionss.bloodTypes.findIndex(
+                    x => (x.label = relData.bloodType)
+                  )}
+                  placeholder='گروه خونی'
+                  list={optionss.bloodTypes}
+                  onSelect={item => (relData.bloodType = item.label)}
+                />
+              ) : (
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='گروه خونی'
+                  placeholder='گروه خونی'
+                  list={optionss.bloodTypes}
+                  onSelect={item => (relData.bloodType = item.label)}
+                />
+              )}
 
-            {/* -------------------------------------------------------------- */}
-          </View>
-        </CustomScrollView>
+              {/* -------------------------------------------------------------- */}
+
+              <View style={{ ...Prolar.style.rtlRow, paddingTop: space }}>
+                <PrimaryInput
+                  keyboardType='numeric'
+                  label='قد(سانتیمتر)'
+                  placeholder='قد(سانتیمتر)'
+                  height={height}
+                  defaultValue={relData.height}
+                  getValue={x => (relData.height = x)}
+                  viewStyle={{ width: '50%', paddingLeft: space }}
+                />
+
+                <PrimaryInput
+                  keyboardType='numeric'
+                  label='وزن(کیلوگرم)'
+                  placeholder='وزن(کیلوگرم)'
+                  height={height}
+                  defaultValue={relData.weight}
+                  getValue={x => (relData.weight = x)}
+                  viewStyle={{ width: '50%', paddingRight: space }}
+                />
+              </View>
+
+              {/* -------------------------------------------------------------- */}
+              {relData.insurance.length > 0 ? (
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='بیمه'
+                  placeholder='بیمه'
+                  selected={optionss.insurances.findIndex(
+                    x => (x.label = relData.insurance)
+                  )}
+                  list={optionss.insurances}
+                  onSelect={item => (relData.insurance = item.label)}
+                />
+              ) : (
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='بیمه'
+                  placeholder='بیمه'
+                  list={optionss.insurances}
+                  onSelect={item => (relData.insurance = item.label)}
+                />
+              )}
+              {/* -------------------------------------------------------------- */}
+              {relData.supplementaryInsurance.length > 0 ? (
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='بیمه تکمیلی'
+                  placeholder='بیمه تکمیلی'
+                  selected={optionss.supplementaryInsurances.findIndex(
+                    x => (x.label = relData.supplementaryInsurance)
+                  )}
+                  list={optionss.supplementaryInsurances}
+                  onSelect={item =>
+                    (relData.supplementaryInsurance = item.label)
+                  }
+                />
+              ) : (
+                <CustomPicker
+                  viewStyle={rowStyle}
+                  label='بیمه تکمیلی'
+                  placeholder='بیمه تکمیلی'
+                  list={optionss.supplementaryInsurances}
+                  onSelect={item =>
+                    (relData.supplementaryInsurance = item.label)
+                  }
+                />
+              )}
+              {/* -------------------------------------------------------------- */}
+
+              <View
+                style={{
+                  ...Prolar.style.rtlRow,
+                  paddingTop: space,
+                  justifyContent: 'center',
+                  margin: space
+                }}
+              >
+                {this.state.indicatorShow ? (
+                  <ActivityIndicator
+                    size='large'
+                    color={Prolar.color.primary}
+                  />
+                ) : (
+                  <Button
+                    style={{
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      alignContent: 'center',
+                      alignSelf: 'center',
+                      marginLeft: 10,
+                      marginRight: 10
+                    }}
+                    color={Prolar.color.primary}
+                    width={125}
+                    height={height}
+                    onPress={this.onPress}
+                  >
+                    <Text
+                      label='ذخیره اطلاعات'
+                      color={Prolar.color.white}
+                      fontSize={Prolar.size.font_md}
+                    />
+                  </Button>
+                )}
+                {this.state.indicatorShow2 ? (
+                  <ActivityIndicator
+                    size='large'
+                    color={Prolar.color.primary}
+                  />
+                ) : (
+                  <Button
+                    style={{
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      alignContent: 'center',
+                      alignSelf: 'center',
+                      marginLeft: 10,
+                      marginRight: 10
+                    }}
+                    color={Prolar.color.cardDelete}
+                    width={125}
+                    height={height}
+                    onPress={this.onDel}
+                  >
+                    <Text
+                      label='حذف'
+                      color={Prolar.color.white}
+                      fontSize={Prolar.size.font_md}
+                    />
+                  </Button>
+                )}
+              </View>
+
+              {/* -------------------------------------------------------------- */}
+            </View>
+          </CustomScrollView>
+        ) : (
+          <ActivityIndicator size='large' color={Prolar.color.primary} />
+        )}
         <Modal
           isVisible={this.state.visibleModal}
           style={styles.bottomModal}

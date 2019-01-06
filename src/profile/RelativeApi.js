@@ -1,9 +1,9 @@
-import { Prolar } from "../prolar/Prolar";
-import { ApiCall } from "../prolar/ApiCall";
-import rnFetchBlob from "rn-fetch-blob";
-import { SourceData } from "../prolar/ApiLinks";
+import { Prolar } from '../prolar/Prolar'
+import { ApiCall } from '../prolar/ApiCall'
+import rnFetchBlob from 'rn-fetch-blob'
+import { SourceData } from '../prolar/ApiLinks'
 
-let res;
+let res
 
 // let prepareData = data => {
 //   // var formData = new FormData()
@@ -109,36 +109,37 @@ let res;
 
 export const ReletiveDeleteApi = async id => {
   params = {
-    apiName: "deletePatient",
+    apiName: 'deletePatient',
     urlParam: id,
-    bodyParams: "null",
+    bodyParams: 'null',
     token: Prolar.data.authorization
-  };
-  res = await ApiCall(params);
+  }
+  res = await ApiCall(params)
 
-  return res;
-};
+  return res
+}
 export const ReletivePostApi = async data => {
   params = {
-    apiName: "addPatient",
-    urlParam: "null",
+    apiName: 'addPatient',
+    urlParam: 'null',
     bodyParams: data,
     token: Prolar.data.authorization
-  };
+  }
 
-  res = await ApiCall(params);
+  res = await ApiCall(params)
 
-  return res;
-};
+  return res
+}
 
 export const GetReletiveApi = async id => {
   params = {
-    apiName: "GetPatient",
+    apiName: 'GetPatient',
     urlParam: id,
-    bodyParams: "null",
+    bodyParams: 'null',
     token: Prolar.data.authorization
-  };
-  res = await ApiCall(params);
+  }
 
-  return res;
-};
+  res = await ApiCall(params)
+
+  return res
+}

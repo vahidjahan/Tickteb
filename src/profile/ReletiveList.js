@@ -17,55 +17,18 @@ export default class ReletiveList extends React.Component {
     super(props)
 
     this.state = {
-      relData: []
+      relData: [],
+      loaded: false
     }
   }
-  componentDidUpdate () {
-    if (this.props.list != undefined) {
-      if (this.props.list.length != this.state.relData.length) {
-        this.getData(this.props.list)
+  static getDerivedStateFromProps (nextProps, prevState) {
+    if (nextProps.list != undefined) {
+      return {
+        relData: nextProps.list,
+        loaded: true
       }
     }
-  }
-  componentDidMount () {
-    if (this.props.list != undefined) {
-      if (this.props.list.length != this.state.relData.length) {
-        this.getData(this.props.list)
-      }
-    }
-  }
-
-  state = {}
-  getIndData = async id => {
-    let x = await GetReletiveApi(id)
-
-    if (x.message == 200) {
-      return x.data
-    } else {
-      let re = {
-        firstName: '',
-        lastName: '',
-        fixedLine: '',
-        email: '',
-        weight: '',
-        height: '',
-        nationalCode: '',
-        birthDate: '',
-        gender: true
-      }
-      return re
-    }
-  }
-  getData = async list => {
-    let li = []
-    for (let i = 0; i < list.length; i++) {
-      item = list[i]
-
-      let relD = await this.getIndData(item.id)
-      relD = { ...relD, fullName: item.fullName, pid: item.id }
-      li.push(relD)
-    }
-    this.setState({ relData: li })
+    return null
   }
 
   render () {
